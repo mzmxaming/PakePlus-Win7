@@ -1,11 +1,873 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微信公众号 AI 排版编辑器 · 涯系石头</title>
+<meta name="author" content="涯系石头">
+<meta name="description" content="微信公众号文章 AI 排版编辑器，支持 AI 写方案、AI 生图、AI 智能排版、模板风格学习与配色，程序开发：涯系石头">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ==================== 顶部栏 ==================== -->
+<header class="app-header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="#07c160"/><path d="M7 12h10M7 8h10M7 16h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+    <span class="logo-main">公众号 AI 排版编辑器</span>
+    <span class="logo-sub">涯系石头</span>
+  </div>
+  <div class="header-actions">
+    <span class="ai-chip" id="aiStatusChip" title="AI 连接状态">AI 未配置</span>
+    <button class="action-btn ghost" id="btnAiPanel" onclick="openAiDrawer()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+      AI 助手
+    </button>
+    <button class="tool-btn" title="草稿箱 / 数据管理" onclick="openDraftsManager()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+    </button>
+    <button class="tool-btn" title="保存草稿 (Ctrl+S)" onclick="saveDraft(true)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    </button>
+    <button class="tool-btn" title="关于本项目" onclick="showAbout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </button>
+    <span class="save-status" id="saveStatus"></span>
+  </div>
+</header>
+
+<!-- ==================== 主体三栏 ==================== -->
+<div class="app-body">
+
+  <!-- ===== 左栏：样式 / 模板 / 配色 / 主题 / 我的 ===== -->
+  <aside class="sidebar-left">
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" onclick="switchSidebarTab('styles', this)">样式</button>
+      <button class="sidebar-tab" onclick="switchSidebarTab('templates', this)">模板</button>
+      <button class="sidebar-tab" onclick="switchSidebarTab('typeset', this)">排版</button>
+      <button class="sidebar-tab" onclick="switchSidebarTab('colors', this)">配色</button>
+      <button class="sidebar-tab" onclick="switchSidebarTab('themes', this)">主题</button>
+      <button class="sidebar-tab" onclick="switchSidebarTab('mytemplates', this)">我的</button>
+    </div>
+    <div class="sidebar-content" id="sidebarContent">
+
+      <!-- 样式面板 -->
+      <div id="panel-styles">
+        <div class="section-title">标题样式</div>
+        <div class="template-card" onclick="insertTemplate('h1','主标题')">
+          <div class="template-preview"><b style="font-size:20px">主标题</b></div>
+          <div class="template-name">大标题 · 22px 加粗</div>
+        </div>
+        <div class="template-card" onclick="insertTemplate('h2','副标题')">
+          <div class="template-preview"><b style="font-size:18px">副标题</b></div>
+          <div class="template-name">副标题 · 18px 加粗</div>
+        </div>
+        <div class="template-card" onclick="insertTemplate('h3','小标题')">
+          <div class="template-preview"><b style="font-size:16px">小标题</b></div>
+          <div class="template-name">小标题 · 16px 加粗</div>
+        </div>
+        <div class="section-title">正文样式</div>
+        <div class="template-card" onclick="insertTemplate('para','正文段落')">
+          <div class="template-preview">正文段落样式</div>
+          <div class="template-name">正文 · 15px #3e3e3e</div>
+        </div>
+        <div class="template-card" onclick="insertTemplate('quote','引用文字')">
+          <div class="template-preview" style="border-left:3px solid #07c160;padding-left:8px;color:#666">引用文字</div>
+          <div class="template-name">引用块 · 左边框</div>
+        </div>
+        <div class="section-title">分隔元素</div>
+        <div class="template-card" onclick="insertDivider()">
+          <div class="template-preview">──────</div>
+          <div class="template-name">分隔线</div>
+        </div>
+        <div class="template-card" onclick="insertBlankLine()">
+          <div class="template-preview">空<br><br>行</div>
+          <div class="template-name">段后空行</div>
+        </div>
+      </div>
+
+      <!-- 模板面板 -->
+      <div id="panel-templates" style="display:none;">
+        <div class="section-title">整篇模板</div>
+        <div class="template-card" onclick="insertFullTemplate('news')">
+          <div class="template-preview" style="flex-direction:column;gap:4px">
+            <b style="font-size:14px">📰 图文消息</b>
+            <span style="font-size:10px">标题 + 正文 + 引导关注</span>
+          </div>
+          <div class="template-name">标准图文模板</div>
+        </div>
+        <div class="template-card" onclick="insertFullTemplate('holiday')">
+          <div class="template-preview" style="flex-direction:column;gap:4px">
+            <b style="font-size:14px">🎉 节日祝福</b>
+            <span style="font-size:10px">节日标题 + 祝福语 + 卡片</span>
+          </div>
+          <div class="template-name">节日祝福模板</div>
+        </div>
+        <div class="template-card" onclick="insertFullTemplate('product')">
+          <div class="template-preview" style="flex-direction:column;gap:4px">
+            <b style="font-size:14px">🛒 产品介绍</b>
+            <span style="font-size:10px">产品亮点 + 详情 + 购买引导</span>
+          </div>
+          <div class="template-name">产品推文模板</div>
+        </div>
+        <div class="template-card" onclick="insertFullTemplate('knowledge')">
+          <div class="template-preview" style="flex-direction:column;gap:4px">
+            <b style="font-size:14px">📚 知识干货</b>
+            <span style="font-size:10px">要点列表 + 分段解析</span>
+          </div>
+          <div class="template-name">知识分享模板</div>
+        </div>
+        <div class="section-title">结构化区块</div>
+        <div class="template-card" onclick="insertBlock('card')">
+          <div class="template-preview" style="background:#f0fdf4;border-radius:6px">卡片区块</div>
+          <div class="template-name">卡片 / 提示块</div>
+        </div>
+        <div class="template-card" onclick="insertBlock('steps')">
+          <div class="template-preview" style="flex-direction:column;gap:2px">
+            <span style="font-size:10px">① 第一步　② 第二步　③ 第三步</span>
+          </div>
+          <div class="template-name">步骤 / 编号列表</div>
+        </div>
+        <div class="template-card" onclick="insertBlock('cta')">
+          <div class="template-preview" style="color:#07c160;font-weight:600">👇 引导关注 / 阅读原文</div>
+          <div class="template-name">引导关注区块</div>
+        </div>
+      </div>
+
+      <!-- 配色面板 -->
+      <div id="panel-colors" style="display:none;">
+        <div class="section-title">推荐文字色</div>
+        <div class="color-presets" id="presetTextColors"></div>
+        <div class="section-title">背景色</div>
+        <div class="color-presets" id="presetBgColors"></div>
+        <div class="section-title">自定义颜色</div>
+        <div class="color-custom-row">
+          <input type="color" id="customColorInput" value="#07c160">
+          <button class="action-btn secondary sm" onclick="applyCustomTextColor()">设为文字色</button>
+          <button class="action-btn secondary sm" onclick="applyCustomBgColor()">设为背景色</button>
+        </div>
+        <div class="section-title">配色方案生成</div>
+        <div class="color-custom-row">
+          <input type="color" id="paletteBaseColor" value="#07c160">
+          <button class="action-btn secondary sm" onclick="generatePaletteFromBase()">生成和谐配色</button>
+        </div>
+        <div class="color-presets" id="generatedPalette"></div>
+        <div class="section-title">从封面图取色</div>
+        <button class="action-btn secondary sm block" onclick="extractPaletteFromCover()">🎨 提取封面主色</button>
+        <div class="color-presets" id="coverPalette" style="margin-top:8px"></div>
+      </div>
+
+      <!-- 主题面板 -->
+      <div id="panel-themes" style="display:none;">
+        <div class="section-title">一键主题（全文行内样式）</div>
+        <div id="themeList"></div>
+        <div class="section-title">标题装饰风格</div>
+        <div class="theme-hint">选择后对全文标题生效，可与主题叠加。</div>
+        <div class="heading-style-grid" id="headingStyleGrid"></div>
+        <div class="section-title">操作</div>
+        <button class="action-btn outline block" onclick="applyCurrentTheme()">🎨 应用当前主题到全文</button>
+        <button class="action-btn secondary block" onclick="inlineAllStyles()">🧩 一键内联样式（兼容微信）</button>
+        <div class="theme-hint" style="margin-top:8px">提示：微信公众号会丢弃 class 样式，排版完成后建议执行一次「一键内联样式」。</div>
+      </div>
+
+      <!-- 排版面板 -->
+      <div id="panel-typeset" style="display:none;">
+        <div class="section-title">排版参数</div>
+        <div class="ts-field">
+          <label>主题色</label>
+          <input type="color" id="tsPrimaryColor" value="#07c160">
+        </div>
+        <div class="ts-field">
+          <label>正文字体</label>
+          <select class="tool-select ts-select" id="tsFontFamily">
+            <option value="'PingFang SC','Microsoft YaHei',sans-serif">苹方 / 微软雅黑</option>
+            <option value="'Microsoft YaHei',sans-serif">微软雅黑</option>
+            <option value="SimSun,STSong,serif">宋体</option>
+            <option value="KaiTi,STKaiti,serif">楷体</option>
+            <option value="FangSong,STFangsong,serif">仿宋</option>
+            <option value="Georgia,serif">Georgia</option>
+          </select>
+        </div>
+        <div class="ts-field">
+          <label>正文字号 <span class="hint-mini" id="tsFontSizeVal">15</span> px</label>
+          <input type="range" id="tsFontSize" min="12" max="20" step="1" value="15"
+                 oninput="document.getElementById('tsFontSizeVal').textContent=this.value">
+        </div>
+        <div class="ts-row">
+          <div class="ts-col">
+            <label>行高</label>
+            <select class="tool-select ts-select" id="tsLineHeight">
+              <option value="1.5">1.5</option>
+              <option value="1.6">1.6</option>
+              <option value="1.75">1.75</option>
+              <option value="1.8" selected>1.8</option>
+              <option value="2">2.0</option>
+              <option value="2.2">2.2</option>
+            </select>
+          </div>
+          <div class="ts-col">
+            <label>字间距</label>
+            <select class="tool-select ts-select" id="tsLetterSpacing">
+              <option value="0">0</option>
+              <option value="0.5" selected>0.5px</option>
+              <option value="1">1px</option>
+              <option value="1.5">1.5px</option>
+              <option value="2">2px</option>
+            </select>
+          </div>
+        </div>
+        <div class="ts-row">
+          <div class="ts-col">
+            <label>段间距</label>
+            <select class="tool-select ts-select" id="tsParaSpacing">
+              <option value="8">8px</option>
+              <option value="12">12px</option>
+              <option value="16" selected>16px</option>
+              <option value="20">20px</option>
+              <option value="24">24px</option>
+            </select>
+          </div>
+          <div class="ts-col">
+            <label>标题样式</label>
+            <select class="tool-select ts-select" id="tsHeadingStyle">
+              <option value="plain">简约加粗</option>
+              <option value="left-bar" selected>左竖线</option>
+              <option value="underline">底部下划线</option>
+              <option value="pill">圆角标签</option>
+              <option value="card">底色卡片</option>
+              <option value="gradient">渐变底块</option>
+            </select>
+          </div>
+        </div>
+        <div class="ts-row">
+          <div class="ts-col">
+            <label>引用样式</label>
+            <select class="tool-select ts-select" id="tsQuoteStyle">
+              <option value="bar" selected>左竖线</option>
+              <option value="card">卡片</option>
+              <option value="quote">无边框</option>
+            </select>
+          </div>
+          <div class="ts-col">
+            <label>代码主题</label>
+            <select class="tool-select ts-select" id="tsCodeTheme">
+              <option value="light" selected>浅色</option>
+              <option value="dark">深色</option>
+              <option value="green">微信绿</option>
+              <option value="plain">纯文本</option>
+            </select>
+          </div>
+        </div>
+        <label class="ai-checkbox"><input type="checkbox" id="tsIndent"> 正文首行缩进 2 字符</label>
+        <label class="ai-checkbox"><input type="checkbox" id="tsStripLinks"> 去除超链接（保留文字）</label>
+        <label class="ai-checkbox"><input type="checkbox" id="tsLinkFootnote"> 外链转为文末脚注</label>
+        <label class="ai-checkbox"><input type="checkbox" id="tsShowFootnotes" checked> 显示脚注区</label>
+        <div class="section-title">自定义 CSS</div>
+        <textarea class="ai-textarea" id="tsCustomCss" style="min-height:60px" placeholder="例如：p { color: #333 }　支持标准 CSS，会作用于预览与导出"></textarea>
+        <button class="action-btn primary block" style="margin-top:8px" onclick="applyTypeset()">🎨 应用排版到全文</button>
+        <button class="action-btn outline block" onclick="resetTypeset()">↺ 重置排版参数</button>
+
+        <div class="section-title">公式 / 图表（已内置离线包）</div>
+        <div class="theme-hint">KaTeX 公式与 Mermaid 图表组件已内置在 <code>vendor/</code> 目录，<b>断网也能用</b>；若资源被删除会自动回退 CDN，仍失败则保留原文。</div>
+        <button class="action-btn secondary block" onclick="renderMathAndMermaid()">∑ 渲染公式与图表</button>
+
+        <div class="section-title">图片上传</div>
+        <div class="ts-field">
+          <label>上传方式</label>
+          <select class="tool-select ts-select" id="upSource" onchange="toggleUploadFields()">
+            <option value="local">本地内嵌（默认，无需配置）</option>
+            <option value="custom">自定义上传接口</option>
+            <option value="github">GitHub 图床</option>
+          </select>
+        </div>
+        <div id="upCustomFields" style="display:none">
+          <div class="ts-field"><label>接口地址</label><input class="ai-input" id="upCustomUrl" placeholder="https://your-api.com/upload"></div>
+          <div class="ts-row">
+            <div class="ts-col"><label>表单字段名</label><input class="ai-input" id="upCustomField" placeholder="file"></div>
+            <div class="ts-col"><label>返回 URL 路径</label><input class="ai-input" id="upCustomResultPath" placeholder="data.url"></div>
+          </div>
+          <div class="ts-field"><label>额外请求头（JSON，选填）</label><input class="ai-input" id="upCustomHeaders" placeholder='{"Authorization":"Bearer xxx"}'></div>
+        </div>
+        <div id="upGithubFields" style="display:none">
+          <div class="ts-row">
+            <div class="ts-col"><label>用户名 / 组织</label><input class="ai-input" id="upGhOwner" placeholder="your-name"></div>
+            <div class="ts-col"><label>仓库名</label><input class="ai-input" id="upGhRepo" placeholder="images"></div>
+          </div>
+          <div class="ts-row">
+            <div class="ts-col"><label>分支</label><input class="ai-input" id="upGhBranch" placeholder="main"></div>
+            <div class="ts-col"><label>目录</label><input class="ai-input" id="upGhDir" placeholder="images"></div>
+          </div>
+          <div class="ts-field"><label>Token</label><input class="ai-input" id="upGhToken" type="password" placeholder="ghp_..."></div>
+          <label class="ai-checkbox"><input type="checkbox" id="upGhCdn" checked> 使用 jsDelivr 加速访问</label>
+        </div>
+        <button class="action-btn outline block" onclick="saveUploadSettings()">💾 保存图片上传设置</button>
+        <div class="theme-hint">把图片直接拖到编辑区即可按上述方式上传插入。</div>
+
+        <div class="section-title">文件导入 / 导出</div>
+        <div class="ts-row">
+          <button class="action-btn secondary sm" style="flex:1" onclick="document.getElementById('importFileInput').click()">📥 导入文件</button>
+          <button class="action-btn secondary sm" style="flex:1" onclick="exportMarkdownFile()">📤 导出 MD</button>
+        </div>
+        <button class="action-btn secondary block" style="margin-top:8px" onclick="exportHTML()">💾 导出 HTML</button>
+        <button class="action-btn secondary block" onclick="exportPdf()">🖨️ 导出 PDF（打印）</button>
+      </div>
+
+      <!-- 我的模板面板 -->
+      <div id="panel-mytemplates" style="display:none;">
+        <div class="section-title">📥 导入模板</div>
+        <div style="margin-bottom:12px">
+          <input type="text" id="templateUrlInput" class="modal-input" placeholder="输入135编辑器模板ID或URL" style="margin-bottom:6px;font-size:12px">
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <button class="action-btn primary sm" style="flex:1" onclick="fetchTemplate()">🔍 获取模板</button>
+            <button class="action-btn secondary sm" style="flex:1" onclick="showPasteDialog()">📋 粘贴源码</button>
+          </div>
+          <div class="hint-text">
+            支持格式：<br>
+            · 模板ID：142601<br>
+            · URL：135editor.com/editor_styles/142601.html<br>
+            · 直接粘贴 HTML 源码
+          </div>
+        </div>
+        <div class="section-title flex-between">
+          📚 我的模板
+          <span class="hint-mini" id="myTemplateCount">0个</span>
+        </div>
+        <div id="myTemplateList">
+          <div class="empty-tip">暂无模板<br>导入后这里显示</div>
+        </div>
+        <div class="section-title" style="margin-top:16px">🗑️ 管理</div>
+        <button class="action-btn secondary sm block" onclick="clearAllMyTemplates()">清空全部模板</button>
+        <div style="margin-top:12px;text-align:center">
+          <a href="https://www.135editor.com/moban.html" target="_blank" rel="noopener" class="link-inline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            135编辑器模板中心
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <span>程序开发：涯系石头</span>
+    </div>
+  </aside>
+
+  <!-- ===== 中栏：编辑器 ===== -->
+  <main class="editor-main">
+    <!-- 工具栏第一行 -->
+    <div class="editor-toolbar" id="toolbar">
+      <div class="toolbar-group">
+        <button class="tool-btn" title="撤销" onclick="exec('undo')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+        </button>
+        <button class="tool-btn" title="重做" onclick="exec('redo')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        </button>
+      </div>
+      <span class="toolbar-divider"></span>
+      <div class="toolbar-group">
+        <select class="tool-select" id="fontFamily" onchange="exec('fontName', this.value)" style="width:100px">
+          <option value="">默认字体</option>
+          <option value="PingFang SC, Microsoft YaHei, sans-serif">苹方/雅黑</option>
+          <option value="SimSun, STSong, serif">宋体</option>
+          <option value="KaiTi, STKaiti, serif">楷体</option>
+          <option value="FangSong, STFangsong, serif">仿宋</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="Arial, Helvetica, sans-serif">Arial</option>
+        </select>
+        <select class="tool-select" id="fontSize" onchange="exec('fontSize', this.value)" style="width:70px">
+          <option value="1">12px</option>
+          <option value="2">14px</option>
+          <option value="3" selected>15px</option>
+          <option value="4">18px</option>
+          <option value="5">22px</option>
+          <option value="6">28px</option>
+          <option value="7">36px</option>
+        </select>
+      </div>
+      <span class="toolbar-divider"></span>
+      <div class="toolbar-group">
+        <button class="tool-btn" title="加粗 (Ctrl+B)" onclick="exec('bold')"><b>B</b></button>
+        <button class="tool-btn" title="斜体 (Ctrl+I)" onclick="exec('italic')"><i>I</i></button>
+        <button class="tool-btn" title="下划线 (Ctrl+U)" onclick="exec('underline')"><u>U</u></button>
+        <button class="tool-btn" title="删除线" onclick="exec('strikeThrough')"><s>S</s></button>
+      </div>
+      <span class="toolbar-divider"></span>
+      <div class="toolbar-group">
+        <div class="color-picker-wrap">
+          <button class="tool-btn" title="字体颜色" onclick="document.getElementById('fontColorPicker').click()">
+            <span style="font-weight:700;font-size:15px">A</span>
+            <span class="color-indicator" id="fontColorIndicator" style="background:#3e3e3e"></span>
+          </button>
+          <input type="color" id="fontColorPicker" value="#3e3e3e" style="position:absolute;opacity:0;width:0;height:0" onchange="setFontColor(this.value)">
+        </div>
+        <div class="color-picker-wrap">
+          <button class="tool-btn" title="背景颜色" onclick="document.getElementById('bgColorPicker').click()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><rect x="2" y="2" width="20" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="5" y="5" width="14" height="5" fill="currentColor" opacity="0.3"/></svg>
+            <span class="color-indicator" id="bgColorIndicator" style="background:transparent"></span>
+          </button>
+          <input type="color" id="bgColorPicker" value="#ffff00" style="position:absolute;opacity:0;width:0;height:0" onchange="setBgColor(this.value)">
+        </div>
+      </div>
+      <span class="toolbar-divider"></span>
+      <div class="toolbar-group">
+        <button class="tool-btn" title="清除格式" onclick="clearFormat()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="10" y1="11" x2="10" y2="21"/><line x1="14" y1="11" x2="14" y2="21"/><path d="M5.41 4L9 20h6l3.59-16"/><line x1="4" y1="4" x2="20" y2="4"/></svg>
+        </button>
+        <button class="tool-btn" title="清除全部样式（纯文本）" onclick="clearAllStyles()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7l1 13M15 7l-1 13M6 4h12"/><line x1="16" y1="16" x2="21" y2="21"/><line x1="21" y1="16" x2="16" y2="21"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 工具栏第二行 -->
+    <div class="editor-toolbar" id="toolbar2" style="border-top:none">
+      <div class="toolbar-group">
+        <button class="tool-btn" title="左对齐" onclick="exec('justifyLeft')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3zm0 8h12v2H3zm0-4h18v2H3zm0 8h12v2H3z"/></svg>
+        </button>
+        <button class="tool-btn" title="居中" onclick="exec('justifyCenter')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3zm4 8h10v2H7zM3 7h18v2H3zm4 8h10v2H7z"/></svg>
+        </button>
+        <button class="tool-btn" title="右对齐" onclick="exec('justifyRight')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3zm6 8h12v2H9zM3 7h18v2H3zm6 8h12v2H9z"/></svg>
+        </button>
+        <button class="tool-btn" title="两端对齐" onclick="exec('justifyFull')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v2H3zm0 8h18v2H3zm0-4h18v2H3zm0 8h18v2H3z"/></svg>
+        </button>
+      </div>
+      <span class="toolbar-divider"></span>
+      <div class="toolbar-group">
+        <button class="tool-btn wide" title="首行缩进2字符" onclick="indentFirstLine()">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M3 3h18v2H3zm0 4h10v2H3zm0 12h18v2H3zm0-4h10v2H3z"/><polygon points="13,11 17,13 13,15"/></svg>
+          缩进
+        </button>
+        <button class="tool-btn" title="增加缩进" onclick="exec('indent')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 21V3h18v18H3zm2-2h14V5H5v14zm2-8h4v2H7v-2zm0-3h10v2H7V8zm0 6h10v2H7v-2z"/><polygon points="9,10 12,12 9,14"/></svg>
+        </button>
+        <button class="tool-btn" title="减少缩进" onclick="exec('outdent')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 21V3h18v18H3zm2-2h14V5H5v14zm2-8h4v2H7v-2zm0-3h10v2H7V8zm0 6h10v2H7v-2z"/><polygon points="12,10 9,12 12,14"/></svg>
+        </button>
+      </div>
+      <span class="toolbar-divider"></span>
+      <div class="toolbar-group">
+        <select class="tool-select" onchange="setLetterSpacing(this.value)" style="width:80px" id="letterSpacingSelect" title="字间距">
+          <option value="0">字间距</option>
+          <option value="0.5">0.5px</option>
+          <option value="1">1px</option>
+          <option value="1.5">1.5px</option>
+          <option value="2">2px</option>
+          <option value="3">3px</option>
+        </select>
+        <select class="tool-select" onchange="setLineHeight(this.value)" style="width:80px" id="lineHeightSelect" title="行高">
+          <option value="1.5">行高1.5</option>
+          <option value="1.6">行高1.6</option>
+          <option value="1.8" selected>行高1.8</option>
+          <option value="2">行高2.0</option>
+          <option value="2.5">行高2.5</option>
+        </select>
+      </div>
+      <span class="toolbar-divider"></span>
+      <div class="toolbar-group">
+        <button class="tool-btn" title="插入图片" onclick="document.getElementById('imageInput').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
+        <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="insertImage(event)">
+        <button class="tool-btn" title="插入分隔线" onclick="insertDivider()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>
+        </button>
+        <button class="tool-btn" title="插入表格" onclick="showTableDialog()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        </button>
+        <button class="tool-btn" title="插入链接" onclick="showLinkDialog()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </button>
+      </div>
+      <span class="toolbar-divider"></span>
+      <div class="toolbar-group">
+        <button class="tool-btn" title="无序列表" onclick="exec('insertUnorderedList')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="4" cy="6" r="1.5"/><rect x="8" y="5" width="13" height="2"/><circle cx="4" cy="12" r="1.5"/><rect x="8" y="11" width="13" height="2"/><circle cx="4" cy="18" r="1.5"/><rect x="8" y="17" width="13" height="2"/></svg>
+        </button>
+        <button class="tool-btn" title="有序列表" onclick="exec('insertOrderedList')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="8" y="5" width="13" height="2"/><text x="1.5" y="7.5" font-size="8">1.</text><rect x="8" y="11" width="13" height="2"/><text x="1.5" y="13.5" font-size="8">2.</text><rect x="8" y="17" width="13" height="2"/><text x="1.5" y="19.5" font-size="8">3.</text></svg>
+        </button>
+        <button class="tool-btn" title="引用" onclick="exec('formatBlock', '<BLOCKQUOTE>')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z"/></svg>
+        </button>
+      </div>
+      <div style="flex:1"></div>
+      <div class="toolbar-group">
+        <button class="tool-btn ai-btn" title="AI 智能排版" onclick="aiQuickLayout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+        </button>
+        <button class="tool-btn ai-btn" title="AI 生图" onclick="openAiDrawer('image')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
+        <span class="toolbar-divider"></span>
+        <button class="tool-btn md-toggle" title="切换到 Markdown 模式" onclick="toggleMarkdownMode()" id="modeBtn">MD</button>
+        <span class="toolbar-divider"></span>
+        <button class="tool-btn" title="源代码模式" onclick="toggleSourceMode()" id="sourceBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </button>
+        <button class="tool-btn" title="手机预览" onclick="showPreview()" style="color:#07c160">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </button>
+        <button class="tool-btn wide primary-text" title="一键复制到微信" onclick="copyToWechat()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          微信复制
+        </button>
+      </div>
+    </div>
+
+    <!-- 源代码面板 -->
+    <div id="sourceModePanel" style="display:none;">
+      <textarea id="sourceCodeTextarea" class="source-code-textarea" oninput="syncSourceToEditor()"></textarea>
+      <div class="hint-text" style="margin-top:8px">💡 直接编辑 HTML 源代码，修改后点击上方「源代码」按钮切回可视化模式。支持 AI 生成的 HTML 直接粘贴。</div>
+    </div>
+
+    <!-- ===== Markdown 双栏工作台 ===== -->
+    <div class="md-studio" id="mdStudio">
+      <div class="md-toolbar">
+        <button class="md-tool" title="一级标题" onclick="mdInsertSyntax('h1')">H1</button>
+        <button class="md-tool" title="二级标题" onclick="mdInsertSyntax('h2')">H2</button>
+        <button class="md-tool" title="三级标题" onclick="mdInsertSyntax('h3')">H3</button>
+        <span class="md-div"></span>
+        <button class="md-tool" title="加粗 (Ctrl+B)" onclick="mdInsertSyntax('bold')"><b>B</b></button>
+        <button class="md-tool" title="斜体 (Ctrl+I)" onclick="mdInsertSyntax('italic')"><i>I</i></button>
+        <button class="md-tool" title="删除线" onclick="mdInsertSyntax('strike')"><s>S</s></button>
+        <button class="md-tool" title="高亮" onclick="mdInsertSyntax('mark')">==高亮==</button>
+        <button class="md-tool" title="行内代码" onclick="mdInsertSyntax('code')">&lt;/&gt;</button>
+        <span class="md-div"></span>
+        <button class="md-tool" title="引用" onclick="mdInsertSyntax('quote')">引用</button>
+        <button class="md-tool" title="无序列表" onclick="mdInsertSyntax('ul')">• 列表</button>
+        <button class="md-tool" title="有序列表" onclick="mdInsertSyntax('ol')">1. 列表</button>
+        <button class="md-tool" title="任务列表" onclick="mdInsertSyntax('task')">☑ 待办</button>
+        <span class="md-div"></span>
+        <button class="md-tool" title="链接 (Ctrl+K)" onclick="mdInsertSyntax('link')">链接</button>
+        <button class="md-tool" title="图片" onclick="mdInsertSyntax('image')">图片</button>
+        <button class="md-tool" title="表格" onclick="mdInsertSyntax('table')">表格</button>
+        <button class="md-tool" title="脚注" onclick="mdInsertSyntax('footnote')">脚注</button>
+        <span class="md-div"></span>
+        <button class="md-tool" title="行内公式" onclick="mdInsertSyntax('math')">$公式$</button>
+        <button class="md-tool" title="块级公式" onclick="mdInsertSyntax('mathblock')">∑ 块级</button>
+        <button class="md-tool" title="Mermaid 图表" onclick="mdInsertSyntax('mermaid')">图表</button>
+        <button class="md-tool" title="GFM 警告块" onclick="mdInsertSyntax('admonition')">> [!NOTE]</button>
+        <button class="md-tool" title="代码块" onclick="mdInsertSyntax('codeblock')">代码块</button>
+        <button class="md-tool" title="分隔线" onclick="mdInsertSyntax('hr')">—</button>
+        <span class="md-div"></span>
+        <button class="md-tool" title="载入示例" onclick="loadMdDemo()">示例</button>
+        <span style="flex:1"></span>
+        <label class="md-check"><input type="checkbox" id="mdAutoRender" onchange="mdRender()"> 自动渲染公式/图表</label>
+        <button class="md-tool primary" title="同步为公众号富文本" onclick="mdToRichText()">✅ 同步为富文本</button>
+      </div>
+      <div class="md-body">
+        <textarea class="md-source" id="mdSource" spellcheck="false"
+          placeholder="在这里书写 Markdown…
+
+支持标题、加粗、列表、任务列表、表格、代码块、引用、GFM 警告块、脚注、注音、公式 $..$、Mermaid 图表等。
+
+写好后点右上角「同步为富文本」，即可套用左侧主题与排版并复制到微信公众号。"></textarea>
+        <div class="md-preview" id="mdPreview"></div>
+      </div>
+      <div class="md-statusbar">
+        <span id="mdStats">字符 0 · 字数 0 · 行数 0</span>
+        <span style="flex:1"></span>
+        <button class="md-link-btn" onclick="richToMd()">从正文提取 Markdown</button>
+        <button class="md-link-btn" onclick="loadMdDemo()">载入示例</button>
+        <button class="md-link-btn" onclick="mdToRichText()">同步为富文本</button>
+      </div>
+    </div>
+
+    <!-- 编辑区 -->
+    <div class="editor-scroll" id="editorScroll">
+      <div class="editor-card" id="editorCard">
+        <div class="article-meta">
+          <textarea class="article-title-input" id="articleTitle" placeholder="请输入文章标题" rows="1" oninput="autoResizeTitle()"></textarea>
+          <input class="article-author-input" id="articleAuthor" placeholder="作者名称（选填）">
+        </div>
+        <div class="editor-content" id="editorContent" contenteditable="true"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== 右栏：文章设置 ===== -->
+  <aside class="sidebar-right">
+    <div class="panel-section">
+      <div class="panel-label">📷 封面图片</div>
+      <div class="cover-upload" id="coverUpload" onclick="document.getElementById('coverInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" width="32" height="32"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>点击上传封面图</span>
+        <span style="font-size:11px">建议尺寸 900×383</span>
+        <button class="remove-cover" onclick="event.stopPropagation();removeCover()">×</button>
+      </div>
+      <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="setCoverImage(event)">
+      <button class="action-btn secondary sm block" style="margin-top:8px" onclick="openAiDrawer('image');setTimeout(()=>{const el=document.getElementById('imgUseAsCover');if(el)el.checked=true;},100)">🤖 用 AI 生成封面图</button>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">📝 文章摘要 <span class="hint-mini">（选填）</span></div>
+      <textarea class="summary-textarea" id="articleSummary" placeholder="不填写则默认抓取正文前54个字" oninput="updateCharCount()" maxlength="120"></textarea>
+      <div class="char-count"><span id="charCount">0</span>/120</div>
+      <button class="action-btn secondary sm block" onclick="aiGenerateSummary()">🤖 AI 生成摘要</button>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">📊 文章信息</div>
+      <div class="article-info" id="articleInfo">
+        字数：<span id="wordCount">0</span> 字<br>
+        阅读：约 <span id="readTime">0</span> 分钟<br>
+        段落：<span id="paraCount">0</span> 段<br>
+        图片：<span id="imgCount">0</span> 张
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">⚡ 快捷操作</div>
+      <button class="action-btn primary block" onclick="copyToWechat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        复制到微信公众号
+      </button>
+      <button class="action-btn outline block" onclick="showPreview()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        手机预览
+      </button>
+      <button class="action-btn secondary block" onclick="aiGenerateTitle()">🤖 AI 生成标题</button>
+      <button class="action-btn secondary block" onclick="inlineAllStyles()">🧩 一键内联样式</button>
+      <button class="action-btn secondary block" onclick="exportHTML()">💾 导出 HTML 文件</button>
+      <button class="action-btn danger block" onclick="clearAll()">🗑️ 清空内容</button>
+    </div>
+
+    <div class="panel-section credit">
+      数据自动保存在本地浏览器<br>关闭页面不会丢失<br>
+      <span class="credit-line">程序开发 · 涯系石头</span>
+    </div>
+  </aside>
+</div>
+
+<!-- ==================== AI 抽屉 ==================== -->
+<div class="ai-drawer-mask" id="aiDrawerMask" onclick="closeAiDrawer()"></div>
+<aside class="ai-drawer" id="aiDrawer">
+  <div class="ai-drawer-header">
+    <div class="ai-drawer-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#07c160" stroke-width="2" width="18" height="18"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+      AI 工作台
+    </div>
+    <button class="modal-close" onclick="closeAiDrawer()">×</button>
+  </div>
+  <div class="ai-drawer-tabs">
+    <button class="ai-tab active" data-ai-tab="write" onclick="switchAiTab('write', this)">写方案</button>
+    <button class="ai-tab" data-ai-tab="layout" onclick="switchAiTab('layout', this)">排版</button>
+    <button class="ai-tab" data-ai-tab="image" onclick="switchAiTab('image', this)">生图</button>
+    <button class="ai-tab" data-ai-tab="learn" onclick="switchAiTab('learn', this)">风格学习</button>
+    <button class="ai-tab" data-ai-tab="settings" onclick="switchAiTab('settings', this)">设置</button>
+  </div>
+  <div class="ai-drawer-body">
+
+    <!-- 写方案 -->
+    <div class="ai-pane" id="ai-pane-write">
+      <label class="ai-label">文章主题 / 提示词</label>
+      <textarea class="ai-textarea" id="aiTopic" placeholder="例：写一篇面向新手爸妈的婴幼儿秋季护理指南，包含饮食、穿衣、常见病预防"></textarea>
+      <div class="ai-row">
+        <div class="ai-col">
+          <label class="ai-label">文章类型</label>
+          <select class="ai-select" id="aiArticleType">
+            <option value="公众号推文">公众号推文</option>
+            <option value="活动方案">活动方案</option>
+            <option value="产品介绍">产品介绍</option>
+            <option value="知识科普">知识科普</option>
+            <option value="节日祝福">节日祝福</option>
+            <option value="人物故事">人物故事</option>
+            <option value="营销软文">营销软文</option>
+            <option value="通知公告">通知公告</option>
+          </select>
+        </div>
+        <div class="ai-col">
+          <label class="ai-label">语气风格</label>
+          <select class="ai-select" id="aiTone">
+            <option value="亲切自然">亲切自然</option>
+            <option value="专业严谨">专业严谨</option>
+            <option value="轻松幽默">轻松幽默</option>
+            <option value="温暖治愈">温暖治愈</option>
+            <option value="激情励志">激情励志</option>
+            <option value="简洁干练">简洁干练</option>
+          </select>
+        </div>
+      </div>
+      <div class="ai-row">
+        <div class="ai-col">
+          <label class="ai-label">目标读者</label>
+          <input class="ai-input" id="aiAudience" placeholder="选填，如：年轻宝妈">
+        </div>
+        <div class="ai-col">
+          <label class="ai-label">目标字数</label>
+          <select class="ai-select" id="aiWordCount">
+            <option value="600">约 600 字</option>
+            <option value="1000" selected>约 1000 字</option>
+            <option value="1500">约 1500 字</option>
+            <option value="2000">约 2000 字</option>
+            <option value="3000">约 3000 字</option>
+          </select>
+        </div>
+      </div>
+      <label class="ai-checkbox"><input type="checkbox" id="aiWithSubheads" checked> 使用小标题分段</label>
+      <label class="ai-checkbox"><input type="checkbox" id="aiAutoLayout" checked> 生成后自动排版</label>
+      <label class="ai-checkbox"><input type="checkbox" id="aiAppendMode"> 追加到文末（不覆盖现有内容）</label>
+      <button class="action-btn primary block" id="btnAiWrite" onclick="aiWriteArticle()">✨ 生成文章</button>
+      <button class="action-btn secondary block" onclick="aiStop()" id="btnAiStop" style="display:none">⏹ 停止生成</button>
+      <div class="ai-status" id="aiWriteStatus"></div>
+      <div class="ai-stream" id="aiWriteStream"></div>
+    </div>
+
+    <!-- 排版 -->
+    <div class="ai-pane" id="ai-pane-layout" style="display:none">
+      <label class="ai-label">排版范围</label>
+      <select class="ai-select" id="layoutTarget">
+        <option value="all">全文</option>
+        <option value="selection">仅选中内容</option>
+      </select>
+      <label class="ai-label">主题配色</label>
+      <select class="ai-select" id="layoutTheme"></select>
+      <label class="ai-label">标题装饰风格</label>
+      <select class="ai-select" id="layoutHeadingStyle"></select>
+      <label class="ai-label">排版引擎</label>
+      <select class="ai-select" id="layoutEngine">
+        <option value="rule">本地规则排版（快速、无需 AI）</option>
+        <option value="ai">AI 智能排版（需先配置 AI）</option>
+      </select>
+      <label class="ai-checkbox"><input type="checkbox" id="layoutFirstLineIndent"> 正文首行缩进 2 字符</label>
+      <label class="ai-checkbox"><input type="checkbox" id="layoutAddHearts" checked> 段落间距与留白优化</label>
+      <button class="action-btn primary block" onclick="aiDoLayout()">🎨 开始排版</button>
+      <div class="ai-status" id="aiLayoutStatus"></div>
+      <div class="ai-divider"></div>
+      <label class="ai-label">Markdown / 纯文本 一键转排版</label>
+      <textarea class="ai-textarea" id="markdownInput" placeholder="粘贴 Markdown 或纯文本，点击下方按钮转换为公众号排版"></textarea>
+      <button class="action-btn outline block" onclick="convertMarkdownToArticle()">📄 转换为排版并插入</button>
+    </div>
+
+    <!-- 生图 -->
+    <div class="ai-pane" id="ai-pane-image" style="display:none">
+      <label class="ai-label">图片描述 / 提示词</label>
+      <textarea class="ai-textarea" id="imgPrompt" placeholder="例：秋天的银杏大道，暖色调，电影感，高清摄影"></textarea>
+      <button class="action-btn secondary sm block" onclick="aiSuggestImagePrompt()">🤖 根据文章生成配图提示词</button>
+      <div class="ai-row">
+        <div class="ai-col">
+          <label class="ai-label">生成通道</label>
+          <select class="ai-select" id="imgSource" onchange="toggleImageSourceFields()">
+            <option value="builtin">内置通道（免 Key）</option>
+            <option value="custom">自填图片 API</option>
+          </select>
+        </div>
+        <div class="ai-col">
+          <label class="ai-label">图片尺寸</label>
+          <select class="ai-select" id="imgSize">
+            <option value="landscape_16_9">横版 16:9</option>
+            <option value="landscape_4_3" selected>横版 4:3</option>
+            <option value="square_hd">正方形 高清</option>
+            <option value="portrait_4_3">竖版 4:3</option>
+            <option value="portrait_16_9">竖版 16:9</option>
+          </select>
+        </div>
+      </div>
+      <div id="customImageFields" style="display:none">
+        <label class="ai-label">图片接口地址（OpenAI 兼容）</label>
+        <input class="ai-input" id="imgApiUrl" placeholder="https://api.xxx.com/v1/images/generations">
+        <label class="ai-label">图片接口 Key</label>
+        <input class="ai-input" id="imgApiKey" type="password" placeholder="sk-...">
+        <label class="ai-label">图片模型</label>
+        <input class="ai-input" id="imgApiModel" placeholder="如：dall-e-3 / wanx-v1">
+      </div>
+      <label class="ai-checkbox"><input type="checkbox" id="imgUseAsCover"> 同时设为文章封面</label>
+      <button class="action-btn primary block" id="btnGenImage" onclick="aiGenerateImage()">🖼️ 生成并插入图片</button>
+      <div class="ai-status" id="aiImageStatus"></div>
+      <div class="ai-image-preview" id="aiImagePreview"></div>
+    </div>
+
+    <!-- 风格学习 -->
+    <div class="ai-pane" id="ai-pane-learn" style="display:none">
+      <label class="ai-label">选择参考模板（来自「我的模板」）</label>
+      <select class="ai-select" id="learnTemplateSelect"></select>
+      <div class="ai-or">— 或者 —</div>
+      <label class="ai-label">粘贴参考模板 HTML / 网页源码</label>
+      <textarea class="ai-textarea" id="learnPasteHtml" placeholder="粘贴一段带样式的 HTML（会自动提取配色、字体、圆角、间距等设计特征）"></textarea>
+      <label class="ai-checkbox"><input type="checkbox" id="learnUseAi" checked> 使用 AI 归纳风格说明（需先配置 AI）</label>
+      <button class="action-btn primary block" onclick="aiLearnTemplate()">🧠 开始学习模板风格</button>
+      <div class="ai-status" id="aiLearnStatus"></div>
+      <div class="ai-learn-result" id="aiLearnResult"></div>
+      <div class="ai-divider"></div>
+      <label class="ai-label">保存为「我的风格」</label>
+      <input class="ai-input" id="learnStyleName" placeholder="风格名称，如：清新绿色卡片风">
+      <button class="action-btn outline block" onclick="saveLearnedStyle()">💾 保存风格</button>
+      <div class="ai-divider"></div>
+      <label class="ai-label">我的风格</label>
+      <div id="myStyleList" class="my-style-list"></div>
+    </div>
+
+    <!-- 设置 -->
+    <div class="ai-pane" id="ai-pane-settings" style="display:none">
+      <div class="ai-note">
+        支持任意 <b>OpenAI 兼容</b> 接口（DeepSeek、通义千问、智谱、Kimi、OpenAI 等）。<br>
+        配置仅保存在本机浏览器，不会上传到任何服务器。
+      </div>
+      <label class="ai-label">接口地址 Base URL</label>
+      <input class="ai-input" id="aiBaseUrl" placeholder="https://api.deepseek.com">
+      <div class="ai-preset-row">
+        <button class="chip" onclick="fillAiPreset('deepseek')">DeepSeek</button>
+        <button class="chip" onclick="fillAiPreset('dashscope')">通义千问</button>
+        <button class="chip" onclick="fillAiPreset('zhipu')">智谱 GLM</button>
+        <button class="chip" onclick="fillAiPreset('moonshot')">Kimi</button>
+        <button class="chip" onclick="fillAiPreset('openai')">OpenAI</button>
+        <button class="chip" onclick="fillAiPreset('ollama')">本地 Ollama</button>
+      </div>
+      <label class="ai-label">API Key</label>
+      <input class="ai-input" id="aiApiKey" type="password" placeholder="sk-...">
+      <label class="ai-label">模型名称</label>
+      <input class="ai-input" id="aiModel" placeholder="如：deepseek-chat">
+      <div class="ai-row">
+        <div class="ai-col">
+          <label class="ai-label">温度 <span class="hint-mini" id="aiTempVal">0.7</span></label>
+          <input type="range" id="aiTemperature" min="0" max="1" step="0.1" value="0.7" oninput="document.getElementById('aiTempVal').textContent=this.value">
+        </div>
+        <div class="ai-col">
+          <label class="ai-label">流式输出</label>
+          <select class="ai-select" id="aiStream">
+            <option value="1">开启</option>
+            <option value="0">关闭</option>
+          </select>
+        </div>
+      </div>
+      <button class="action-btn primary block" onclick="saveAiSettings()">💾 保存设置</button>
+      <button class="action-btn outline block" onclick="testAiConnection()">🔌 测试连接</button>
+      <div class="ai-status" id="aiTestStatus"></div>
+      <div class="ai-divider"></div>
+      <div class="ai-note">
+        程序开发：<b>涯系石头</b><br>微信公众号：<b>涯系石头</b>
+      </div>
+    </div>
+
+  </div>
+</aside>
+
+<!-- 选中文字浮动工具条 -->
+<div class="selection-bubble" id="selectionBubble"></div>
+
+<!-- 隐藏：文件导入 / 备份恢复 -->
+<input type="file" id="importFileInput" accept=".md,.markdown,.html,.htm,.txt" style="display:none" onchange="importArticleFile(event)">
+<input type="file" id="backupFileInput" accept=".json" style="display:none" onchange="importBackup(event)">
+
+<!-- 弹窗 / 提示容器 -->
+<div id="modalContainer"></div>
+<div id="toastContainer"></div>
+
+<!-- ==================== 脚本（按依赖顺序加载） ==================== -->
+<script src="js/utils.js"></script>
+<script src="js/config.js"></script>
+<script src="js/markdown.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/templates.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/typeset.js"></script>
+<script src="js/upload.js"></script>
+<script src="js/drafts.js"></script>
+<script src="js/mdstudio.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/app.js"></script>
+</body>
 </html>
